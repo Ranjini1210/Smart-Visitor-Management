@@ -1,0 +1,20 @@
+{
+  "name": "smart-visitor-management",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Modern Enterprise Smart Visitor Management System",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "build": "npm run build --workspace=server && npm run build --workspace=client",
+    "start": "node server/dist/server.js",
+    "docker:up": "docker-compose up --build",
+    "docker:down": "docker-compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
