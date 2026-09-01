@@ -6,7 +6,12 @@ import { User, Visitor, Visit, Department, Approval, Notification, AuditLog } fr
 
 export const pool = new Pool({
   connectionString: config.postgres.connectionString,
-  connectionTimeoutMillis: 2000
+  connectionTimeoutMillis: 1000
+});
+
+// Suppress unhandled pool background error events when PG is not connected
+pool.on('error', () => {
+  isPostgresActive = false;
 });
 
 export let isPostgresActive = false;
@@ -23,8 +28,18 @@ export const memoryDb = {
 };
 
 export async function initializeDatabase() {
+  // Only attempt PostgreSQL connection if explicitly configured with remote database
+  if (!process.env.DATABASE_URL && !process.env.POSTGRES_HOST) {
+    isPostgresActive = false;
+    return;
+  }
+
   try {
-    const client = await pool.connect();
+    const connectPromise = pool.connect();
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Connection timeout')), 1000)
+    );
+    const client = (await Promise.race([connectPromise, timeoutPromise])) as any;
     console.log('✅ PostgreSQL connected successfully.');
     isPostgresActive = true;
     
@@ -41,3 +56,4 @@ export async function initializeDatabase() {
     console.log('ℹ️ PostgreSQL not reachable. Running on resilient in-memory database mode.');
   }
 }
+

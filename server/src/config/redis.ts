@@ -57,18 +57,19 @@ export class ResilientCacheService {
   private isRedisConnected = false;
 
   constructor() {
+    if (!process.env.REDIS_URL && !process.env.REDIS_HOST) {
+      this.isRedisConnected = false;
+      return;
+    }
     try {
       this.redis = new Redis(config.redis.url, {
         maxRetriesPerRequest: 1,
-        retryStrategy: (times) => {
-          if (times > 2) return null; // Stop retrying and fallback
-          return 200;
-        },
-        lazyConnect: true
+        retryStrategy: () => null,
+        lazyConnect: true,
+        connectTimeout: 1000
       });
 
       this.redis.on('error', () => {
-        // Suppress unhandled error log when Redis container is not started
         this.isRedisConnected = false;
       });
 
@@ -77,11 +78,9 @@ export class ResilientCacheService {
         console.log('✅ Redis connected successfully.');
       }).catch(() => {
         this.isRedisConnected = false;
-        console.log('ℹ️ Redis unavailable. Using resilient in-memory cache adapter.');
       });
     } catch {
       this.isRedisConnected = false;
-      console.log('ℹ️ Redis initialization fallback active.');
     }
   }
 

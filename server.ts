@@ -1,11 +1,19 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
-import app from './server/src/app';
+import appModule, { app as rawApp } from './server/src/app';
 import { initializeDatabase } from './server/src/database/db';
 import { seedData } from './server/src/database/seed';
 
 const PORT = 3000;
+
+// Resolve express application reliably across ESM/CJS bundles
+const app = (rawApp && typeof rawApp.use === 'function')
+  ? rawApp
+  : (appModule && typeof (appModule as any).use === 'function')
+  ? appModule
+  : (appModule as any)?.default || express();
 
 async function startServer() {
   await initializeDatabase();
@@ -17,12 +25,29 @@ async function startServer() {
       configFile: path.resolve(process.cwd(), 'vite.config.ts'),
       server: {
         middlewareMode: true,
-        host: '0.0.0.0',
-        port: PORT
       },
       appType: 'spa',
     });
     app.use(vite.middlewares);
+
+    // Fallback SPA routing for Vite development
+    app.use('*', async (req, res, next) => {
+      const url = req.originalUrl;
+      // Do not catch /api routes that 404
+      if (url.startsWith('/api')) {
+        return res.status(404).json({ success: false, message: 'API route not found' });
+      }
+
+      try {
+        const indexPath = path.resolve(process.cwd(), 'client/index.html');
+        let template = fs.readFileSync(indexPath, 'utf-8');
+        template = await vite.transformIndexHtml(url, template);
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+      } catch (e: any) {
+        vite.ssrFixStacktrace(e);
+        next(e);
+      }
+    });
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
@@ -39,3 +64,4 @@ async function startServer() {
 startServer().catch((err) => {
   console.error('Failed to start server:', err);
 });
+

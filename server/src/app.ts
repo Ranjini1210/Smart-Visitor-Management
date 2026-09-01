@@ -16,8 +16,16 @@ import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 
-// Security Helmet headers
-app.use(helmet({ crossOriginResourcePolicy: false }));
+// Security Helmet headers - configured for iframe and dev preview compatibility
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+    frameguard: false
+  })
+);
 
 // CORS setup
 app.use(cors({
@@ -26,10 +34,10 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rate limiting
+// Rate limiting - high allowance for active session previews
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: 2000,
   message: { success: false, message: 'Too many requests from this IP, please try again later.' }
 });
 app.use(limiter);
@@ -60,4 +68,5 @@ app.use('/api/settings', settingRoutes);
 // Error Handler
 app.use(errorHandler);
 
+export { app };
 export default app;
