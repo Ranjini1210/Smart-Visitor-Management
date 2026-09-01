@@ -138,8 +138,9 @@ export class VisitRepository {
       );
       return res.rows[0];
     }
+    const nextId = (memoryDb.visits.length > 0 ? Math.max(...memoryDb.visits.map((v) => v.id)) : 0) + 1;
     const newVisit: Visit = {
-      id: memoryDb.visits.length + 1,
+      id: nextId,
       visitor_id: data.visitor_id!,
       host_id: data.host_id || null,
       purpose: data.purpose || 'Meeting',
@@ -150,7 +151,7 @@ export class VisitRepository {
       vehicle_number: data.vehicle_number || '',
       notes: data.notes || '',
       status: data.status || 'pending',
-      qr_token: data.qr_token || `SVM-${memoryDb.visits.length + 1}-DEFAULT`,
+      qr_token: data.qr_token || `SVM-${nextId}-DEFAULT`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };

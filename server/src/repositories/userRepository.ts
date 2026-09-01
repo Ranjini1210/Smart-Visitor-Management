@@ -5,10 +5,10 @@ export class UserRepository {
   static async findAll(): Promise<User[]> {
     if (isPostgresActive) {
       const res = await pool.query(`
-        SELECT u.id, u.name, u.email, u.role, u.department_id, u.phone, u.avatar_url, u.created_at, u.updated_at, d.name as department_name
+        SELECT u.id, u.name, u.email, u.role, u.department_id, u.phone, u.avatar_url, u.pin, u.gate, u.created_at, u.updated_at, d.name as department_name
         FROM users u
         LEFT JOIN departments d ON u.department_id = d.id
-        ORDER BY u.id DESC
+        ORDER BY u.id ASC
       `);
       return res.rows;
     }

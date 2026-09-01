@@ -62,33 +62,40 @@ export class VisitController {
         return res.status(400).json({ success: false, message: 'Required fields missing' });
       }
 
+      const trimmedPhone = String(phone).trim();
+      const trimmedEmail = String(email).trim();
+      const trimmedName = String(name).trim();
+
       // Find or create visitor
-      let visitor = await VisitorRepository.findByPhoneOrEmail(phone, email);
+      let visitor = await VisitorRepository.findByPhoneOrEmail(trimmedPhone, trimmedEmail);
       if (!visitor) {
         visitor = await VisitorRepository.create({
-          name,
-          phone,
-          email,
-          organization: organization || 'Guest',
+          name: trimmedName,
+          phone: trimmedPhone,
+          email: trimmedEmail,
+          organization: organization?.trim() || 'Guest',
           id_type: id_type || 'Aadhaar / Govt ID',
-          id_number: id_number || 'N/A',
+          id_number: id_number?.trim() || 'N/A',
           id_proof_url: id_proof_url || ''
         });
       }
+
+      const parsedHostId = host_id && !isNaN(parseInt(host_id, 10)) ? parseInt(host_id, 10) : null;
+      const parsedAccompanying = accompanying_count && !isNaN(parseInt(accompanying_count, 10)) ? parseInt(accompanying_count, 10) : 0;
 
       // Initial temp token, will map to visit ID
       const tempToken = generateQRToken(Date.now());
 
       const visit = await VisitRepository.create({
         visitor_id: visitor.id,
-        host_id: host_id ? parseInt(host_id, 10) : null,
+        host_id: parsedHostId,
         purpose,
         expected_date,
         expected_time,
         duration: duration || '1 Hour',
-        accompanying_count: accompanying_count ? parseInt(accompanying_count, 10) : 0,
-        vehicle_number: vehicle_number || '',
-        notes: notes || '',
+        accompanying_count: parsedAccompanying,
+        vehicle_number: vehicle_number?.trim() || '',
+        notes: notes?.trim() || '',
         status: 'pending',
         qr_token: tempToken
       });
@@ -96,41 +103,54 @@ export class VisitController {
       // Update QR Token with actual visit id
       const realToken = generateQRToken(visit.id);
       visit.qr_token = realToken;
-      if (visit.id) {
-        // update in-memory / db token
-        visit.qr_token = realToken;
-      }
 
       // Send notifications to Host
-      if (host_id) {
-        await NotificationRepository.create({
-          user_id: parseInt(host_id, 10),
-          title: 'New Visitor Request',
-          message: `Visitor ${visitor.name} (${visitor.organization}) requested a visit for ${expected_date} at ${expected_time}.`,
-          type: 'info'
-        });
+      if (parsedHostId) {
+        try {
+          await NotificationRepository.create({
+            user_id: parsedHostId,
+            title: 'New Visitor Request',
+            message: `Visitor ${visitor.name} (${visitor.organization}) requested a visit for ${expected_date} at ${expected_time}.`,
+            type: 'info'
+          });
+        } catch (notifErr) {
+          console.error('Host notification error:', notifErr);
+        }
       }
 
       // Send notification to Admin
-      const allUsers = await UserRepository.findAll();
-      const adminUsers = allUsers.filter((u) => u.role === 'admin');
-      for (const admin of adminUsers) {
-        await NotificationRepository.create({
-          user_id: admin.id,
-          title: 'New Visitor Registration',
-          message: `${visitor.name} registered to visit ${host_id ? 'Host ID #' + host_id : 'Campus'}.`,
-          type: 'info'
-        });
+      try {
+        const allUsers = await UserRepository.findAll();
+        const adminUsers = allUsers.filter((u) => u.role === 'admin');
+        for (const admin of adminUsers) {
+          await NotificationRepository.create({
+            user_id: admin.id,
+            title: 'New Visitor Registration',
+            message: `${visitor.name} registered to visit ${parsedHostId ? 'Host ID #' + parsedHostId : 'Campus'}.`,
+            type: 'info'
+          });
+        }
+      } catch (adminErr) {
+        console.error('Admin notification error:', adminErr);
       }
 
-      await AuditLogRepository.log({
-        action: 'VISITOR_REGISTERED',
-        entity_type: 'VISIT',
-        entity_id: visit.id,
-        details: `Visitor ${name} registered visit #${visit.id} for host ID ${host_id}`
-      });
+      try {
+        await AuditLogRepository.log({
+          action: 'VISITOR_REGISTERED',
+          entity_type: 'VISIT',
+          entity_id: visit.id,
+          details: `Visitor ${trimmedName} registered visit #${visit.id} for host ID ${parsedHostId}`
+        });
+      } catch (auditErr) {
+        console.error('Audit log error:', auditErr);
+      }
 
-      const qrDataURL = await generateQRDataURL(realToken);
+      let qrDataURL = '';
+      try {
+        qrDataURL = await generateQRDataURL(realToken);
+      } catch (qrErr) {
+        console.error('QR Data URL error:', qrErr);
+      }
 
       return res.status(201).json({
         success: true,
@@ -143,7 +163,8 @@ export class VisitController {
         }
       });
     } catch (error: any) {
-      return res.status(500).json({ success: false, message: error.message });
+      console.error('Error creating visit:', error);
+      return res.status(500).json({ success: false, message: error.message || 'Failed to register visit' });
     }
   }
 

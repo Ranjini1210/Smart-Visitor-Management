@@ -50,8 +50,9 @@ export class VisitorRepository {
       );
       return res.rows[0];
     }
+    const nextId = (memoryDb.visitors.length > 0 ? Math.max(...memoryDb.visitors.map((v) => v.id)) : 0) + 1;
     const newVisitor: Visitor = {
-      id: memoryDb.visitors.length + 1,
+      id: nextId,
       name: data.name || '',
       phone: data.phone || '',
       email: data.email || '',

@@ -61,7 +61,6 @@ app.use('/api/visits', visitRoutes);
 app.use('/api/approvals', approvalRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/check-in', checkInRoutes);
-app.use('/api/visits', checkInRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingRoutes);

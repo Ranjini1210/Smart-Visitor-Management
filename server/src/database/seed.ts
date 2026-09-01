@@ -31,11 +31,14 @@ export async function seedData() {
 
       // Seed Users
       const usersData = [
-        { name: 'Dr. Rajesh Sharma', email: 'admin@campus.edu', password_hash: passwordHash, role: 'admin', department_id: 3, phone: '+91 98765 43210' },
-        { name: 'Inspector Suresh Nair', email: 'security@campus.edu', password_hash: securityHash, role: 'security', department_id: 6, phone: '+91 98765 43211' },
-        { name: 'Prof. Ananya Verma', email: 'host@campus.edu', password_hash: hostHash, role: 'host', department_id: 1, phone: '+91 98765 43212' },
-        { name: 'Dr. Vikramaditya Rao', email: 'vikram.rao@campus.edu', password_hash: hostHash, role: 'host', department_id: 5, phone: '+91 98765 43213' },
-        { name: 'Rahul Sharma', email: 'visitor@campus.edu', password_hash: visitorHash, role: 'visitor', department_id: null, phone: '+91 91234 56789' }
+        { name: 'Dr. Rajesh Sharma', email: 'admin@campus.edu', password_hash: passwordHash, pin: '1234', role: 'admin' as const, department_id: 3, phone: '+91 98765 43210', gate: 'Administration HQ' },
+        { name: 'Prof. Ananya Verma', email: 'ananya.verma@campus.edu', password_hash: hostHash, pin: '1111', role: 'host' as const, department_id: 1, phone: '+91 98765 43212', gate: 'Computer Science Dept' },
+        { name: 'Dr. Vikramaditya Rao', email: 'vikram.rao@campus.edu', password_hash: hostHash, pin: '2222', role: 'host' as const, department_id: 5, phone: '+91 98765 43213', gate: 'Research & Innovation' },
+        { name: 'Prof. Meera Nambiar', email: 'meera.nambiar@campus.edu', password_hash: hostHash, pin: '3333', role: 'host' as const, department_id: 2, phone: '+91 98765 43214', gate: 'ECE Department' },
+        { name: 'Dr. Arjun Sengupta', email: 'arjun.sengupta@campus.edu', password_hash: hostHash, pin: '4444', role: 'host' as const, department_id: 4, phone: '+91 98765 43215', gate: 'Admissions & HR' },
+        { name: 'Officer Suresh Nair', email: 'security@campus.edu', password_hash: securityHash, pin: '5555', role: 'security' as const, department_id: 6, phone: '+91 98765 43211', gate: 'Main Entrance (Gate 1)' },
+        { name: 'Officer Kavita Deshmukh', email: 'kavita.deshmukh@campus.edu', password_hash: securityHash, pin: '6666', role: 'security' as const, department_id: 6, phone: '+91 98765 43216', gate: 'North Tower (Gate 2)' },
+        { name: 'Guest Visitor', email: 'visitor@campus.edu', password_hash: visitorHash, pin: '0000', role: 'visitor' as const, department_id: null, phone: '+91 91234 56789', gate: 'Visitor Self-Service' }
       ];
 
       for (const u of usersData) {
@@ -89,7 +92,7 @@ export async function seedData() {
         {
           visitor_id: 5, host_id: 3, purpose: 'Maintenance', expected_date: todayStr, expected_time: '09:00 AM',
           duration: '1.5 Hours', accompanying_count: 1, vehicle_number: 'KA-04-IJ-7890', notes: 'AC Service in Server Room',
-          status: 'checked_out', qr_token: generateQRToken(105), check_in_at: new Date(Date.now() - 7200000).toISOString(), check_out_out: new Date(Date.now() - 1800000).toISOString()
+          status: 'checked_out', qr_token: generateQRToken(105), check_in_at: new Date(Date.now() - 7200000).toISOString(), check_out_at: new Date(Date.now() - 1800000).toISOString()
         }
       ];
 
@@ -116,11 +119,14 @@ export async function seedData() {
   }));
 
   memoryDb.users = [
-    { id: 1, name: 'Dr. Rajesh Sharma (Admin)', email: 'admin@campus.edu', password_hash: passwordHash, role: 'admin', department_id: 3, phone: '+91 98765 43210', created_at: new Date().toISOString() },
-    { id: 2, name: 'Inspector Suresh Nair (Security)', email: 'security@campus.edu', password_hash: securityHash, role: 'security', department_id: 6, phone: '+91 98765 43211', created_at: new Date().toISOString() },
-    { id: 3, name: 'Prof. Ananya Verma (Host)', email: 'host@campus.edu', password_hash: hostHash, role: 'host', department_id: 1, phone: '+91 98765 43212', created_at: new Date().toISOString() },
-    { id: 4, name: 'Dr. Vikramaditya Rao (Host)', email: 'vikram.rao@campus.edu', password_hash: hostHash, role: 'host', department_id: 5, phone: '+91 98765 43213', created_at: new Date().toISOString() },
-    { id: 5, name: 'Rahul Sharma (Visitor)', email: 'visitor@campus.edu', password_hash: visitorHash, role: 'visitor', department_id: null, phone: '+91 91234 56789', created_at: new Date().toISOString() }
+    { id: 1, name: 'Dr. Rajesh Sharma', email: 'admin@campus.edu', password_hash: passwordHash, pin: '1234', role: 'admin', department_id: 3, phone: '+91 98765 43210', gate: 'Administration HQ', created_at: new Date().toISOString() },
+    { id: 2, name: 'Prof. Ananya Verma', email: 'ananya.verma@campus.edu', password_hash: hostHash, pin: '1111', role: 'host', department_id: 1, phone: '+91 98765 43212', gate: 'Computer Science Dept', created_at: new Date().toISOString() },
+    { id: 3, name: 'Dr. Vikramaditya Rao', email: 'vikram.rao@campus.edu', password_hash: hostHash, pin: '2222', role: 'host', department_id: 5, phone: '+91 98765 43213', gate: 'Research & Innovation', created_at: new Date().toISOString() },
+    { id: 4, name: 'Prof. Meera Nambiar', email: 'meera.nambiar@campus.edu', password_hash: hostHash, pin: '3333', role: 'host', department_id: 2, phone: '+91 98765 43214', gate: 'ECE Department', created_at: new Date().toISOString() },
+    { id: 5, name: 'Dr. Arjun Sengupta', email: 'arjun.sengupta@campus.edu', password_hash: hostHash, pin: '4444', role: 'host', department_id: 4, phone: '+91 98765 43215', gate: 'Admissions & HR', created_at: new Date().toISOString() },
+    { id: 6, name: 'Officer Suresh Nair', email: 'security@campus.edu', password_hash: securityHash, pin: '5555', role: 'security', department_id: 6, phone: '+91 98765 43211', gate: 'Main Entrance (Gate 1)', created_at: new Date().toISOString() },
+    { id: 7, name: 'Officer Kavita Deshmukh', email: 'kavita.deshmukh@campus.edu', password_hash: securityHash, pin: '6666', role: 'security', department_id: 6, phone: '+91 98765 43216', gate: 'North Tower (Gate 2)', created_at: new Date().toISOString() },
+    { id: 8, name: 'Guest Visitor', email: 'visitor@campus.edu', password_hash: visitorHash, pin: '0000', role: 'visitor', department_id: null, phone: '+91 91234 56789', gate: 'Visitor Self-Service', created_at: new Date().toISOString() }
   ];
 
   memoryDb.visitors = [
