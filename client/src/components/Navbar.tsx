@@ -116,7 +116,7 @@ export const Navbar: React.FC<Props> = ({ pageTitle, setMobileOpen }) => {
           )}
         </div>
 
-        {/* Profile Menu & Role Switcher */}
+        {/* Profile Menu */}
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -132,47 +132,24 @@ export const Navbar: React.FC<Props> = ({ pageTitle, setMobileOpen }) => {
             <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-white border border-slate-200 shadow-xl py-2 z-50">
               <div className="px-4 py-3 border-b border-slate-100">
                 <p className="text-xs font-semibold text-slate-400">Signed in as</p>
-                <p className="text-sm font-bold text-slate-900 truncate">{user?.email}</p>
-                <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-extrabold uppercase rounded-md bg-sky-100 text-sky-800">
+                <p className="text-sm font-bold text-slate-900 truncate">{user?.name}</p>
+                <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                <span className="inline-block mt-2 px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full bg-sky-100 text-sky-800">
                   Role: {user?.role}
                 </span>
               </div>
 
-              {/* Demo Role Switcher */}
-              <div className="px-4 py-2 border-b border-slate-100">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                  Quick Switch Role (Demo)
-                </p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {(['admin', 'security', 'host', 'visitor'] as const).map((r) => (
-                    <button
-                      key={r}
-                      onClick={async () => {
-                        await switchRoleQuick(r);
-                        setShowProfileMenu(false);
-                      }}
-                      className={`px-2 py-1 rounded-lg text-[11px] font-semibold capitalize border ${
-                        user?.role === r
-                          ? 'bg-sky-600 text-white border-sky-600'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="p-1">
+              <div className="p-1.5">
                 <button
                   onClick={() => {
+                    setShowProfileMenu(false);
                     logout();
                     navigate('/login');
                   }}
                   className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
+                  <span>Sign Out</span>
                 </button>
               </div>
             </div>

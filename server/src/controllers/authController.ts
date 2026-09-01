@@ -3,26 +3,33 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { UserRepository } from '../repositories/userRepository';
+import { VisitorRepository } from '../repositories/visitorRepository';
 import { AuthRequest } from '../middleware/auth';
 import { AuditLogRepository } from '../repositories/auditLogRepository';
 
 export class AuthController {
   static async login(req: Request, res: Response) {
     try {
-      const { email, password } = req.body;
+      let { email, password } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({ success: false, message: 'Email and password required' });
+        return res.status(400).json({ success: false, message: 'Email and password are required' });
       }
 
+      email = String(email).trim().toLowerCase();
+      password = String(password).trim();
+
+      // Look up user strictly in user repository
       const user = await UserRepository.findByEmail(email);
-      if (!user) {
-        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+
+      if (!user || !user.password_hash) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password. Access denied.' });
       }
 
-      const isMatch = await bcrypt.compare(password, user.password_hash || '');
+      // Strictly verify password hash
+      const isMatch = await bcrypt.compare(password, user.password_hash);
       if (!isMatch) {
-        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        return res.status(401).json({ success: false, message: 'Invalid email or password. Access denied.' });
       }
 
       const tokenPayload = {
@@ -40,7 +47,7 @@ export class AuthController {
         action: 'USER_LOGIN',
         entity_type: 'USER',
         entity_id: user.id,
-        details: `User ${user.email} logged in as ${user.role}`
+        details: `User ${user.email} (${user.name}) logged in as ${user.role}`
       });
 
       const { password_hash, ...userWithoutPassword } = user;

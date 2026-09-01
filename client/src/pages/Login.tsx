@@ -5,11 +5,11 @@ import { ShieldCheck, Eye, EyeOff, Lock, Mail, ArrowRight, UserCheck } from 'luc
 import { UserRole } from '../types';
 
 export const Login: React.FC = () => {
-  const { login, switchRoleQuick } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('admin@campus.edu');
-  const [password, setPassword] = useState('Admin@123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -17,22 +17,21 @@ export const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter your email and password.');
+      return;
+    }
     setLoading(true);
     setError(null);
-    const success = await login(email, password);
+    const cleanEmail = email.trim();
+    const cleanPass = password.trim();
+    const result = await login(cleanEmail, cleanPass);
     setLoading(false);
-    if (success) {
+    if (result.success) {
       navigate('/dashboard');
     } else {
-      setError('Invalid email or password. Please try again.');
+      setError(result.message || 'Invalid email or password. Access denied.');
     }
-  };
-
-  const handleRoleSelect = async (role: UserRole) => {
-    setLoading(true);
-    await switchRoleQuick(role);
-    setLoading(false);
-    navigate('/dashboard');
   };
 
   return (
@@ -65,7 +64,7 @@ export const Login: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="admin@campus.edu"
+                  placeholder="Enter your registered email ID"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white"
@@ -82,7 +81,7 @@ export const Login: React.FC = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white"
@@ -107,9 +106,9 @@ export const Login: React.FC = () => {
                 />
                 <span>Remember me</span>
               </label>
-              <a href="#" className="font-semibold text-sky-600 hover:text-sky-700">
-                Forgot password?
-              </a>
+              <span className="font-semibold text-slate-400 text-xs">
+                Authorized Personnel Only
+              </span>
             </div>
 
             {error && (
@@ -128,48 +127,11 @@ export const Login: React.FC = () => {
             </button>
           </form>
 
-          {/* Evaluator Quick Role Switch Buttons */}
-          <div className="mt-6 pt-6 border-t border-slate-100">
-            <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-3 text-center">
-              Quick Role Test Selector (Instant Login)
+          {/* Secure Access Notice */}
+          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+            <p className="text-[11px] text-slate-400">
+              Role-based access is strictly enforced. Enter your assigned account credentials to sign in.
             </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleRoleSelect('admin')}
-                className="p-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <UserCheck className="w-3.5 h-3.5 text-sky-400" />
-                <span>Admin</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleRoleSelect('security')}
-                className="p-2.5 rounded-xl bg-sky-600 text-white hover:bg-sky-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <UserCheck className="w-3.5 h-3.5 text-white" />
-                <span>Security</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleRoleSelect('host')}
-                className="p-2.5 rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <UserCheck className="w-3.5 h-3.5 text-slate-600" />
-                <span>Host</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleRoleSelect('visitor')}
-                className="p-2.5 rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <UserCheck className="w-3.5 h-3.5 text-slate-600" />
-                <span>Visitor</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
