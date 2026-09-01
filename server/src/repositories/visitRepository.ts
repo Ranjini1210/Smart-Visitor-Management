@@ -96,7 +96,25 @@ export class VisitRepository {
 
   static async findByQRToken(token: string): Promise<Visit | null> {
     const visits = await this.findAll();
-    return visits.find((v) => v.qr_token === token) || null;
+    const cleanToken = token.trim();
+    return (
+      visits.find((v) => {
+        if (v.qr_token === cleanToken) return true;
+        if (v.qr_token.toLowerCase() === cleanToken.toLowerCase()) return true;
+        const partsA = v.qr_token.split('-');
+        const partsB = cleanToken.split('-');
+        if (
+          partsA.length >= 2 &&
+          partsB.length >= 2 &&
+          partsA[0] === 'SVM' &&
+          partsB[0] === 'SVM' &&
+          partsA[1] === partsB[1]
+        ) {
+          return true;
+        }
+        return false;
+      }) || null
+    );
   }
 
   static async create(data: Partial<Visit>): Promise<Visit> {

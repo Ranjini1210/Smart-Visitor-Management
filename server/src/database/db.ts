@@ -29,8 +29,11 @@ export async function initializeDatabase() {
     isPostgresActive = true;
     
     // Execute init.sql schema
-    const schemaSql = fs.readFileSync(path.join(__dirname, 'init.sql'), 'utf-8');
-    await client.query(schemaSql);
+    const initPath = path.join(__dirname, 'init.sql');
+    if (fs.existsSync(initPath)) {
+      const schemaSql = fs.readFileSync(initPath, 'utf-8');
+      await client.query(schemaSql);
+    }
     client.release();
     console.log('✅ PostgreSQL schema initialized.');
   } catch (err: any) {
