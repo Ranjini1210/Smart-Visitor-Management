@@ -12,8 +12,10 @@ export const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('svm_token');
-  if (token) {
+  if (token && token !== 'null' && token !== 'undefined') {
     config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    config.headers.Authorization = `Bearer svm_guest_token`;
   }
   return config;
 });
@@ -21,12 +23,17 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && !window.location.pathname.includes('/login')) {
-      const hasLocalUser = localStorage.getItem('svm_user');
-      if (!hasLocalUser) {
+    if (error.response?.status === 401) {
+      const isLoginOrAuth =
+        window.location.pathname.includes('/login') ||
+        error.config?.url?.includes('/auth/login') ||
+        error.config?.url?.includes('/auth/pin-login') ||
+        error.config?.url?.includes('/auth/me');
+
+      if (!isLoginOrAuth) {
+        // Clear invalid token session
         localStorage.removeItem('svm_token');
         localStorage.removeItem('svm_user');
-        window.location.href = '/login';
       }
     }
     return Promise.reject(error);

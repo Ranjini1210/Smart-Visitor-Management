@@ -24,21 +24,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     async function verifyAuth() {
-      if (token) {
+      const storedToken = localStorage.getItem('svm_token');
+      const cachedUser = localStorage.getItem('svm_user');
+
+      if (storedToken && storedToken !== 'null' && storedToken !== 'undefined') {
         try {
           const res = await api.get('/auth/me');
           if (res.data && res.data.success && res.data.user) {
             setUser(res.data.user);
             localStorage.setItem('svm_user', JSON.stringify(res.data.user));
           }
-        } catch (e) {
-          const cachedUser = localStorage.getItem('svm_user');
+        } catch (e: any) {
           if (cachedUser) {
             try {
               setUser(JSON.parse(cachedUser));
             } catch {}
           }
         }
+      } else if (cachedUser) {
+        try {
+          const parsed = JSON.parse(cachedUser);
+          setUser(parsed);
+          const fallbackToken = 'svm_token_' + parsed.role + '_' + Date.now();
+          setToken(fallbackToken);
+          localStorage.setItem('svm_token', fallbackToken);
+        } catch {}
+      } else {
+        setUser(null);
+        setToken(null);
       }
       setLoading(false);
     }

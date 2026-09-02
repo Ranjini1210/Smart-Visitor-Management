@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const Navbar: React.FC<Props> = ({ pageTitle, setMobileOpen }) => {
-  const { user, logout, switchRoleQuick } = useAuth();
+  const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const [showNotifMenu, setShowNotifMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
